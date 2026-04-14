@@ -2,6 +2,6 @@
   "name": "org-ai",
   "private": true,
   "dependencies": {
-    "@vercel/kv": "^2.0.0"
+    "@upstash/redis": "^1.34.3"
   }
 }
