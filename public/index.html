@@ -347,16 +347,25 @@ function toggleVoice(){
   if(isListening){
     recognition.stop();
     isListening=false;
+    // Save whatever is in the textarea before render
+    const el=document.getElementById('capIn');
+    if(el)S.voiceText=el.value;
     render();
     return;
   }
   recognition.onresult=(e)=>{
     let transcript='';
     for(let i=0;i<e.results.length;i++){transcript+=e.results[i][0].transcript}
+    S.voiceText=transcript;
     const el=document.getElementById('capIn');
     if(el)el.value=transcript;
   };
-  recognition.onend=()=>{isListening=false;render()};
+  recognition.onend=()=>{
+    isListening=false;
+    const el=document.getElementById('capIn');
+    if(el)S.voiceText=el.value;
+    render();
+  };
   recognition.onerror=(e)=>{isListening=false;render();if(e.error!=='no-speech')showToast('Erro no microfone: '+e.error,'warn')};
   recognition.start();
   isListening=true;
@@ -373,7 +382,7 @@ let S={
   lastSync:null,syncing:false,
   toast:null,toastType:'info',
   reviewIdx:0,reviewEdits:{},
-  notifEnabled:false,
+  notifEnabled:false,voiceText:'',
 };
 
 // ─── Toast ───
@@ -385,6 +394,9 @@ function showToast(msg,type='info'){
 // ─── Render ───
 function render(){
   const $=document.getElementById('app');
+  // Preserve textarea content before DOM rebuild
+  const capEl=document.getElementById('capIn');
+  if(capEl&&S.view==='inbox')S.voiceText=capEl.value;
   const ur=S.items.filter(i=>!i.reviewed&&!i.done).length;
   const pend=S.items.filter(i=>!i.done).length;
   const od=S.items.filter(i=>!i.done&&daysTo(i.due_date)<0).length;
@@ -480,7 +492,7 @@ function rInbox(){
     <div class="cap-h">⚡ Captura Rápida</div>
     <div class="cap-s">Jogue qualquer coisa — a IA organiza pra você</div>
     <div class="cap-row">
-      <textarea class="cap-in" id="capIn" placeholder='Ex: "Boleto Cremer vence dia 20" ou "Ligar pro Pablo"' rows="3"></textarea>
+      <textarea class="cap-in" id="capIn" placeholder='Ex: "Boleto Cremer vence dia 20" ou "Ligar pro Pablo"' rows="3">${esc(S.voiceText)}</textarea>
       <button class="cap-mic ${isListening?'on':'off'}" onclick="toggleVoice()" title="Captura por voz">
         ${isListening?'⏹️':'🎤'}
       </button>
@@ -673,6 +685,7 @@ async function doCapture(){
     original_text:text,done:false,reviewed:false,created_at:new Date().toISOString()};
   S.items.unshift(ni);S.processing=false;await dbPut('items',ni);
   if(navigator.vibrate)navigator.vibrate(50);
+  S.voiceText='';
   showToast(`✅ "${ni.title}" capturado!`,'success');
   // Auto-sync to server
   if(S.syncToken)syncToServer();
