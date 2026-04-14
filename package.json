@@ -1,4 +1,4 @@
-json{
+{
   "name": "org-ai",
   "private": true,
   "type": "module",
