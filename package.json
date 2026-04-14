@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
-  <rect width="192" height="192" rx="42.24" fill="#0a0e1a"/>
-  <rect x="15.36" y="15.36" width="161.28" height="161.28" rx="30.72" fill="#111827" stroke="#2563eb" stroke-width="3.84"/>
-  <text x="96" y="92.16" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="42.24" fill="#f1f5f9">ORG</text>
-  <text x="126.72" y="92.16" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="42.24" fill="#2563eb">.</text>
-  <text x="96" y="138.24" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="34.56" fill="#2563eb">AI</text>
-</svg>
+{
+  "name": "org-ai",
+  "private": true,
+  "dependencies": {
+    "@vercel/kv": "^2.0.0"
+  }
+}
