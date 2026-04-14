@@ -369,7 +369,8 @@ let S={
   items:[],triagem:[],view:'focus',processing:false,
   lastReview:null,reviewDates:[],
   filterCat:'all',showDone:false,expandedId:null,
-  apiKey:'',reviewTime:'07:30',
+  apiKey:'',reviewTime:'07:30',syncToken:'',syncUrl:'',
+  lastSync:null,syncing:false,
   toast:null,toastType:'info',
   reviewIdx:0,reviewEdits:{},
   notifEnabled:false,
@@ -613,6 +614,18 @@ function rSettings(){
         <div class="stg-nt">Você será notificado neste horário se não tiver feito a revisão.</div></div>
       <button class="stg-sv" onclick="saveReviewTime()">Salvar Horário</button></div>
 
+    <div class="stg-g"><div class="stg-t">🔗 Sync com Claude</div>
+      <div class="stg-f"><div class="stg-nt" style="font-size:13px;color:var(--tx2);line-height:1.6">
+        Conecta o app ao Claude. Quando você mandar <strong>"organizar tarefas"</strong> no Claude, ele puxa os itens daqui, classifica com IA (no seu plano Max), e devolve.
+      </div></div>
+      <div class="stg-f"><label class="stg-lb">Token de sync (crie uma senha qualquer)</label>
+        <input type="text" class="stg-in" id="syncTokenIn" value="${esc(S.syncToken)}" placeholder="ex: minha-senha-123">
+        <div class="stg-nt">Use algo simples que você lembre. Você vai me informar esse token uma vez no Claude.</div></div>
+      <button class="stg-sv" onclick="saveSyncSettings()">Salvar Token</button>
+      ${S.syncToken?`<button class="stg-sv" style="background:var(--gn);margin-top:8px" onclick="manualSync()">🔄 Sincronizar Agora</button>
+        <div class="stg-nt" style="margin-top:6px">${S.lastSync?'Último sync: '+new Date(S.lastSync).toLocaleString('pt-BR'):'Nunca sincronizado'}</div>`:''}
+    </div>
+
     <div class="stg-g"><div class="stg-t">📧 Webhook para Email</div>
       <div class="stg-f"><div class="stg-nt" style="font-size:13px;color:var(--tx2);line-height:1.6">
         Para capturar emails automaticamente, configure no Zapier/Make:<br><br>
@@ -661,6 +674,8 @@ async function doCapture(){
   S.items.unshift(ni);S.processing=false;await dbPut('items',ni);
   if(navigator.vibrate)navigator.vibrate(50);
   showToast(`✅ "${ni.title}" capturado!`,'success');
+  // Auto-sync to server
+  if(S.syncToken)syncToServer();
 }
 
 function sre(id,f,v){if(!S.reviewEdits[id])S.reviewEdits[id]={};S.reviewEdits[id][f]=v;render()}
@@ -715,6 +730,78 @@ async function saveReviewTime(){
   const el=document.getElementById('rtIn');S.reviewTime=el?.value||'07:30';
   await sm('reviewTime',S.reviewTime);showToast(`⏰ Revisão diária: ${S.reviewTime}`,'success');
 }
+
+// ─── Sync with server (for Claude integration) ───
+async function saveSyncSettings(){
+  const tEl=document.getElementById('syncTokenIn');
+  const token=tEl?.value?.trim()||'';
+  S.syncToken=token;
+  S.syncUrl=window.location.origin;
+  await sm('syncToken',token);await sm('syncUrl',S.syncUrl);
+  if(!token){showToast('Token removido','info');render();return}
+  // Setup token on server
+  try{
+    const r=await fetch(S.syncUrl+'/api/items',{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({action:'setup',token})});
+    const d=await r.json();
+    if(d.success||d.error==='Invalid token'){
+      showToast('🔗 Sync configurado! Token salvo.','success');
+      await syncToServer();
+    }else{
+      showToast('Erro: '+JSON.stringify(d),'warn');
+    }
+  }catch(e){showToast('Erro de conexão: '+e.message,'warn')}
+  render();
+}
+
+async function syncToServer(){
+  if(!S.syncToken||S.syncing)return;
+  S.syncing=true;
+  try{
+    const items=S.items.map(i=>({...i,updated_at:i.updated_at||i.created_at}));
+    const r=await fetch(S.syncUrl+'/api/items',{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.syncToken},
+      body:JSON.stringify({action:'sync',items})});
+    const d=await r.json();
+    if(d.success){S.lastSync=new Date().toISOString();await sm('lastSync',S.lastSync)}
+  }catch(e){console.warn('Sync error:',e)}
+  S.syncing=false;
+}
+
+async function pullFromServer(){
+  if(!S.syncToken)return;
+  try{
+    const r=await fetch(S.syncUrl+'/api/items?token='+encodeURIComponent(S.syncToken));
+    const d=await r.json();
+    if(d.items){
+      let updated=0;
+      for(const serverItem of d.items){
+        if(serverItem.ai_classified){
+          const local=S.items.find(i=>i.id===serverItem.id);
+          if(local&&!local.ai_classified){
+            Object.assign(local,serverItem);
+            await dbPut('items',local);
+            updated++;
+          }
+        }
+      }
+      if(updated>0){
+        showToast(`🧠 ${updated} item(ns) classificados pelo Claude!`,'success');
+        S.items=getSorted();render();
+      }
+    }
+  }catch(e){console.warn('Pull error:',e)}
+}
+
+async function manualSync(){
+  if(!S.syncToken){showToast('Configure o token de sync primeiro','warn');return}
+  showToast('🔄 Sincronizando...','info');
+  await syncToServer();
+  await pullFromServer();
+  showToast('✅ Sync completo!','success');
+}
+
 async function clearAll(){await dbClr('items');await dbClr('triagem');S.items=[];S.triagem=[];render()}
 
 function getSorted(){return[...S.items].sort((a,b)=>{
@@ -738,6 +825,7 @@ function handleShare(){
         S.items.unshift(ni);await dbPut('items',ni);
         if(navigator.vibrate)navigator.vibrate([50,50,50]);
         showToast(`✅ "${ni.title}" capturado!`,'success');
+        if(S.syncToken)syncToServer();
         history.replaceState({},'','/');
       },100);
     }
@@ -767,10 +855,14 @@ async function init(){
   S.items=await dbAll('items');S.triagem=await dbAll('triagem');
   S.lastReview=await gm('lastReview');S.apiKey=await gm('apiKey')||'';
   S.reviewTime=await gm('reviewTime')||'07:30';
+  S.syncToken=await gm('syncToken')||'';S.syncUrl=await gm('syncUrl')||window.location.origin;
+  S.lastSync=await gm('lastSync')||null;
   const rd=await gm('reviewDates');S.reviewDates=rd?JSON.parse(rd):[];
   S.items=getSorted();
   S.notifEnabled=Notification.permission==='granted';
   render();handleShare();startNotifChecker();initVoice();
+  // Auto-pull classified items from server
+  if(S.syncToken){setTimeout(()=>pullFromServer(),2000)}
 }
 
 // Globals
@@ -782,6 +874,7 @@ window.acceptTriagem=acceptTriagem;window.dismissTriagem=dismissTriagem;
 window.saveKey=saveKey;window.enableNotifs=enableNotifs;
 window.saveReviewTime=saveReviewTime;window.clearAll=clearAll;
 window.toggleVoice=toggleVoice;
+window.saveSyncSettings=saveSyncSettings;window.manualSync=manualSync;
 
 init();
 </script>
