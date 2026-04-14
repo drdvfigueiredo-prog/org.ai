@@ -350,11 +350,11 @@ function toggleVoice(){
     render();
     return;
   }
-  const input=document.getElementById('capIn');
   recognition.onresult=(e)=>{
     let transcript='';
     for(let i=0;i<e.results.length;i++){transcript+=e.results[i][0].transcript}
-    if(input)input.value=transcript;
+    const el=document.getElementById('capIn');
+    if(el)el.value=transcript;
   };
   recognition.onend=()=>{isListening=false;render()};
   recognition.onerror=(e)=>{isListening=false;render();if(e.error!=='no-speech')showToast('Erro no microfone: '+e.error,'warn')};
