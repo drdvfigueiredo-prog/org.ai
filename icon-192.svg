@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ORG.AI">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icon-192.svg">
+  <link rel="apple-touch-icon" href="/icon-192.svg">
+  <title>ORG.AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0e1a;--sf:#111827;--sf2:#1e293b;--bd:#1e293b;
+      --tx:#f1f5f9;--tx2:#94a3b8;--tx3:#64748b;--tx4:#475569;
+      --bl:#2563eb;--gn:#059669;--yw:#f59e0b;--rd:#ef4444;--or:#f97316;--pu:#7c3aed;
+      --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+    }
+    body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:var(--tx);
+      min-height:100dvh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    .app{max-width:480px;margin:0 auto;padding-bottom:calc(72px + var(--sb));min-height:100dvh}
+
+    /* Header */
+    .hdr{padding:calc(12px + var(--st)) 16px 0;background:linear-gradient(180deg,#111827,var(--bg));position:sticky;top:0;z-index:20}
+    .hdr-top{display:flex;align-items:center;justify-content:space-between}
+    .logo{font-size:22px;font-weight:900;letter-spacing:-1px}.logo b{color:var(--bl)}
+    .hdr-btn{background:var(--sf);border:1px solid var(--bd);border-radius:10px;color:var(--tx2);
+      font-size:12px;font-weight:600;padding:6px 12px;font-family:inherit;cursor:pointer}
+
+    /* Stats */
+    .stats{display:flex;padding:14px 16px}.stat{flex:1;text-align:center}
+    .sn{font-size:20px;font-weight:800}.sn.r{color:var(--rd)}.sn.y{color:var(--yw)}.sn.b{color:var(--bl)}.sn.d{color:var(--tx3)}
+    .sl{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:1.2px;margin-top:2px}
+
+    /* Streak */
+    .streak{text-align:center;padding:0 16px 8px;font-size:13px;color:var(--tx3)}
+    .streak b{color:var(--or);font-size:15px}
+
+    /* Nudge */
+    .nudge{margin:8px 16px;padding:14px 16px;background:linear-gradient(135deg,#78350f,#92400e);
+      border-radius:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;animation:slideD .3s ease}
+    .nudge-t{font-size:13px;color:#fef3c7;line-height:1.4}
+    .nudge-b{background:var(--yw);color:#1c1917;border:none;border-radius:10px;padding:10px 16px;
+      font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
+
+    /* Focus / Top 3 */
+    .focus{padding:16px}
+    .focus-title{font-size:18px;font-weight:800;color:var(--tx);margin-bottom:4px;text-align:center}
+    .focus-sub{font-size:13px;color:var(--tx3);text-align:center;margin-bottom:16px}
+    .focus-item{background:var(--sf);border-radius:14px;padding:16px;margin-bottom:10px;
+      border-left:4px solid var(--bl);position:relative}
+    .focus-num{position:absolute;top:12px;right:14px;font-size:28px;font-weight:900;color:#ffffff0a}
+    .focus-cat{font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;display:inline-block;margin-bottom:6px}
+    .focus-t{font-size:15px;font-weight:700;color:var(--tx);margin-bottom:4px}
+    .focus-d{font-size:12px;color:var(--tx2)}
+    .focus-done{width:100%;margin-top:10px;background:var(--gn);color:#fff;border:none;border-radius:10px;
+      padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+    .focus-empty{text-align:center;padding:40px;color:var(--tx3)}
+
+    /* Capture */
+    .cap{margin:12px 16px;background:var(--sf);border-radius:16px;padding:16px;border:1px solid var(--bd)}
+    .cap-h{font-size:16px;font-weight:700;margin-bottom:4px}
+    .cap-s{font-size:12px;color:var(--tx3);margin-bottom:12px}
+    .cap-row{display:flex;gap:8px;align-items:flex-end}
+    .cap-in{flex:1;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:12px 14px;
+      color:var(--tx);font-size:15px;font-family:inherit;resize:none;outline:none;line-height:1.5;min-height:72px}
+    .cap-in:focus{border-color:var(--bl)}
+    .cap-in::placeholder{color:var(--tx4)}
+    .cap-mic{width:52px;height:52px;border-radius:14px;border:none;cursor:pointer;font-size:22px;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+    .cap-mic.off{background:var(--sf2);color:var(--tx2)}
+    .cap-mic.on{background:var(--rd);color:#fff;animation:pulse 1.5s infinite}
+    .cap-btn{width:100%;margin-top:10px;background:var(--bl);color:#fff;border:none;border-radius:12px;
+      padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;
+      align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
+    .cap-btn:disabled{opacity:.4}
+    .cap-listening{text-align:center;padding:8px 0 0;font-size:12px;color:var(--rd);font-weight:600;animation:fadeIn .3s}
+
+    /* Toast */
+    .toast{position:fixed;top:calc(16px + var(--st));left:16px;right:16px;max-width:448px;margin:0 auto;
+      border-radius:14px;padding:14px 16px;font-size:14px;font-weight:600;z-index:100;animation:slideD .3s ease;
+      display:flex;align-items:center;gap:10px}
+    .toast.info{background:#1e40af;color:#fff}
+    .toast.success{background:#065f46;color:#a7f3d0}
+    .toast.warn{background:#78350f;color:#fef3c7}
+
+    /* Items */
+    .slbl{font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:1.2px;padding:0 16px;margin:16px 0 8px}
+    .item{margin:0 16px 8px;background:var(--sf);border-radius:12px;padding:12px 14px;border-left:4px solid var(--bl);cursor:pointer;transition:all .15s}
+    .item.done{opacity:.45}.item.overdue{background:#1e1215}
+    .itop{display:flex;align-items:flex-start;gap:10px}
+    .chk{width:24px;height:24px;border-radius:7px;border:2px solid var(--bl);display:flex;align-items:center;
+      justify-content:center;cursor:pointer;font-size:13px;font-weight:800;color:#fff;flex-shrink:0;background:transparent}
+    .chk.on{background:var(--bl)}
+    .ibody{flex:1;min-width:0}
+    .itt{font-size:14px;font-weight:600;line-height:1.3;margin-bottom:6px}.itt.s{text-decoration:line-through}
+    .badges{display:flex;gap:4px;flex-wrap:wrap}
+    .bdg{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600;white-space:nowrap;border:1px solid}
+    .idt{text-align:right;flex-shrink:0}
+    .idt-m{font-size:12px;font-weight:600}.idt-s{font-size:11px;color:var(--tx4)}
+    .iexp{margin-top:12px;padding-top:12px;border-top:1px solid var(--bd);animation:fadeIn .2s}
+    .iexp-n{font-size:13px;color:#cbd5e1;margin-bottom:8px;line-height:1.4}
+    .iexp-r{font-size:11px;color:var(--tx3);font-style:italic;margin-bottom:8px}
+    .iact{display:flex;gap:8px;margin-top:8px}
+    .bdng{background:#7f1d1d;color:#fca5a5;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+
+    /* Filters */
+    .flt{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px;margin-bottom:12px}
+    .chip{border:1px solid #334155;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:600;
+      cursor:pointer;font-family:inherit;background:var(--sf2);color:var(--tx2);transition:all .15s}
+    .chip.a{background:#2563eb22;border-color:var(--bl);color:#60a5fa}
+
+    /* Review */
+    .rev{padding:16px}
+    .rev-p{margin-bottom:16px}
+    .rev-pt{font-size:13px;color:var(--tx2)}
+    .rev-bar{height:4px;border-radius:2px;background:var(--sf2);margin-top:6px;overflow:hidden}
+    .rev-bf{height:100%;background:var(--bl);border-radius:2px;transition:width .3s}
+    .rev-c{background:var(--sf);border-radius:18px;padding:20px;border:1px solid var(--bd)}
+    .rev-l{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px}
+    .rev-o{font-size:14px;color:#e2e8f0;padding:12px 16px;background:#0f172a;border-radius:10px;border-left:3px solid var(--bl);margin-bottom:20px;line-height:1.5}
+    .rev-t{font-size:17px;font-weight:700;margin-bottom:10px}
+    .rev-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+    .rev-di{width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px 14px;
+      color:var(--tx);font-size:15px;font-family:inherit;margin-bottom:16px}
+    .rev-acts{display:flex;gap:8px}
+    .rev-ab{flex:1;border:none;border-radius:12px;padding:14px 8px;font-size:14px;font-weight:700;
+      cursor:pointer;font-family:inherit;color:#fff;text-align:center}
+    .rev-empty{display:flex;flex-direction:column;align-items:center;padding:60px 20px;text-align:center}
+
+    /* Triagem (email inbox) */
+    .triagem-badge{background:var(--pu);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;
+      border-radius:10px;margin-left:6px}
+    .tri-item{margin:0 16px 8px;background:var(--sf);border-radius:12px;padding:14px;border-left:4px solid var(--pu)}
+    .tri-source{font-size:10px;color:var(--pu);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+    .tri-text{font-size:14px;color:var(--tx);line-height:1.4;margin-bottom:10px}
+    .tri-acts{display:flex;gap:8px}
+    .tri-btn{flex:1;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:#fff}
+
+    /* Settings */
+    .stg{padding:16px}
+    .stg-g{background:var(--sf);border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid var(--bd)}
+    .stg-t{font-size:14px;font-weight:700;margin-bottom:12px}
+    .stg-f{margin-bottom:12px}
+    .stg-lb{font-size:12px;color:var(--tx2);margin-bottom:6px;display:block}
+    .stg-in{width:100%;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px 14px;
+      color:var(--tx);font-size:14px;font-family:inherit}
+    .stg-nt{font-size:11px;color:var(--tx3);margin-top:4px}
+    .stg-sv{width:100%;background:var(--bl);color:#fff;border:none;border-radius:12px;padding:14px;
+      font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px}
+    .stg-dg{width:100%;background:transparent;color:var(--rd);border:1px solid #7f1d1d;border-radius:12px;
+      padding:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px}
+    .stg-ok{color:var(--gn);font-size:12px;font-weight:600;margin-top:6px;display:none}
+
+    /* Bottom nav */
+    .bnav{position:fixed;bottom:0;left:0;right:0;background:#0d1117;border-top:1px solid var(--bd);
+      display:flex;justify-content:center;max-width:480px;margin:0 auto;padding-bottom:var(--sb);z-index:20}
+    .ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 0 8px;
+      background:none;border:none;cursor:pointer;font-family:inherit;color:var(--tx3);transition:color .15s;position:relative}
+    .ni.a{color:var(--bl)}.ni-i{font-size:20px}.ni-l{font-size:10px;font-weight:600}
+    .ni-b{background:var(--rd);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;
+      border-radius:10px;position:absolute;top:4px;right:calc(50% - 18px)}
+
+    .empty{text-align:center;padding:40px 20px;color:var(--tx4);font-size:14px}
+    .spinner{width:18px;height:18px;border:2px solid #fff4;border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes slideD{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+    input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.7)}
+    input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(.7)}
+  </style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<script>
+// ═══════════════════════════════════════
+// ORG.AI v2 — Full PWA
+// ═══════════════════════════════════════
+
+const CATS = {
+  consultorio:{l:'Consultório',c:'#2563eb',i:'🦷'},
+  financeiro:{l:'Financeiro',c:'#d97706',i:'💰'},
+  pessoal:{l:'Pessoal',c:'#7c3aed',i:'👤'},
+  saude:{l:'Saúde',c:'#059669',i:'💚'},
+  admin:{l:'Administrativo',c:'#6366f1',i:'📋'},
+  outro:{l:'Outro',c:'#64748b',i:'📌'},
+};
+const PRIS = {
+  urgente:{l:'Urgente',c:'#ef4444',w:4},
+  alta:{l:'Alta',c:'#f97316',w:3},
+  media:{l:'Média',c:'#eab308',w:2},
+  baixa:{l:'Baixa',c:'#94a3b8',w:1},
+};
+
+// ─── DB ───
+const DB='org-ai-db2';
+function odb(){return new Promise((res,rej)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('items'))d.createObjectStore('items',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'});if(!d.objectStoreNames.contains('triagem'))d.createObjectStore('triagem',{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function dbAll(s){const d=await odb();return new Promise((res,rej)=>{const t=d.transaction(s,'readonly');const r=t.objectStore(s).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function dbPut(s,o){const d=await odb();return new Promise((res,rej)=>{const t=d.transaction(s,'readwrite');t.objectStore(s).put(o);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
+async function dbDel(s,k){const d=await odb();return new Promise((res,rej)=>{const t=d.transaction(s,'readwrite');t.objectStore(s).delete(k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
+async function dbClr(s){const d=await odb();return new Promise((res,rej)=>{const t=d.transaction(s,'readwrite');t.objectStore(s).clear();t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
+async function gm(k){const d=await odb();return new Promise((res,rej)=>{const t=d.transaction('meta','readonly');const r=t.objectStore('meta').get(k);r.onsuccess=()=>res(r.result?.value??null);r.onerror=()=>rej(r.error)})}
+async function sm(k,v){return dbPut('meta',{key:k,value:v})}
+
+// ─── Helpers ───
+const gid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const today=()=>new Date().toISOString().split('T')[0];
+const tomorrow=()=>new Date(Date.now()+864e5).toISOString().split('T')[0];
+function fmtD(d){if(!d)return'Sem data';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`}
+function daysTo(d){if(!d)return Infinity;return Math.ceil((new Date(d)-new Date(today()))/(864e5))}
+function esc(s){const e=document.createElement('span');e.textContent=s;return e.innerHTML}
+
+// ─── AI ───
+async function classifyAI(text,key){
+  if(!key)return fallback(text);
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,
+        system:`Você é um assistente de organização para um dentista (implantodontista/periodontista) com TDAH em Vila Velha-ES. Consultório: Figueiredo Odontologia. Parceira: Lígia. Auxiliar: Patrícia.
+Retorne APENAS JSON (sem markdown):
+{"title":"título curto max 60","category":"consultorio|financeiro|pessoal|saude|admin|outro","priority":"urgente|alta|media|baixa","due_date":"YYYY-MM-DD ou null","type":"compromisso|tarefa|pagamento|lembrete|outro","notes":"detalhes max 120","reasoning":"justificativa max 80"}
+Regras: Boletos→financeiro. Pacientes→consultorio. Hoje=${today()}. Amanhã=${tomorrow()}. Urgente/ASAP→urgente. Pagamento<3dias→urgente.`,
+        messages:[{role:'user',content:text}]})});
+    const data=await r.json();
+    const raw=data.content.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim();
+    return JSON.parse(raw);
+  }catch(e){console.error('AI:',e);return fallback(text)}
+}
+
+function fallback(text){
+  const l=text.toLowerCase();let cat='outro',pri='media',tp='tarefa',dd=null;
+  if(/paciente|implante|cirurg|prot[eé]s|consult[oó]r|agenda|cl[ií]nic|peron|enxert/i.test(l))cat='consultorio';
+  else if(/boleto|pagamento|pagar|conta|fatura|r\$|reais|cart[aã]o|pix/i.test(l)){cat='financeiro';tp='pagamento'}
+  else if(/m[eé]dico|psiqui|terapia|sa[uú]de|exame/i.test(l))cat='saude';
+  else if(/l[ií]gia|pessoal|casa|mercado/i.test(l))cat='pessoal';
+  if(/urgent|agora|asap|hoje|imedia/i.test(l))pri='urgente';
+  else if(/amanh[aã]|import|priorid/i.test(l))pri='alta';
+  const dm=l.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+  if(dm){const day=dm[1].padStart(2,'0'),mo=dm[2].padStart(2,'0'),yr=dm[3]?(dm[3].length===2?'20'+dm[3]:dm[3]):new Date().getFullYear();dd=`${yr}-${mo}-${day}`}
+  return{title:text.slice(0,60),category:cat,priority:pri,type:tp,due_date:dd,notes:'',reasoning:'Classificação local (sem API key)'}
+}
+
+// ─── Notifications ───
+async function requestNotifPermission(){
+  if(!('Notification' in window))return false;
+  if(Notification.permission==='granted')return true;
+  if(Notification.permission==='denied')return false;
+  const p=await Notification.requestPermission();
+  return p==='granted';
+}
+
+function sendNotif(title,body,tag='general',urgent=false){
+  if(!('serviceWorker' in navigator)||Notification.permission!=='granted')return;
+  navigator.serviceWorker.ready.then(reg=>{
+    reg.active?.postMessage({type:'SHOW_NOTIFICATION',title,body,tag,urgent});
+  });
+}
+
+function checkDueNotifications(items){
+  const now=today();
+  items.filter(i=>!i.done&&i.due_date).forEach(item=>{
+    const d=daysTo(item.due_date);
+    const cat=CATS[item.category]||CATS.outro;
+    const notifKey=`notif-${item.id}-${d}`;
+    // Check if already notified at this threshold
+    if(sessionStorage.getItem(notifKey))return;
+
+    if(d<0){
+      sendNotif('⚠️ ATRASADO',`${item.title} — ${Math.abs(d)} dia(s) atrás!`,'overdue-'+item.id,true);
+      sessionStorage.setItem(notifKey,'1');
+    }else if(d===0){
+      sendNotif('📍 VENCE HOJE',`${item.title}`,'today-'+item.id,true);
+      sessionStorage.setItem(notifKey,'1');
+    }else if(d===1){
+      sendNotif('⏰ Vence amanhã',`${item.title}`,'tomorrow-'+item.id,false);
+      sessionStorage.setItem(notifKey,'1');
+    }else if(d<=3){
+      sendNotif(`📌 Vence em ${d} dias`,`${item.title}`,'soon-'+item.id,false);
+      sessionStorage.setItem(notifKey,'1');
+    }else if(d===7){
+      sendNotif(`🗓 Vence em 1 semana`,`${item.title}`,'week-'+item.id,false);
+      sessionStorage.setItem(notifKey,'1');
+    }
+  });
+}
+
+function checkDailyReviewNotif(lastReview,reviewTime){
+  if(lastReview===today())return;
+  if(!reviewTime)return;
+  const now=new Date();
+  const[h,m]=reviewTime.split(':').map(Number);
+  const target=new Date();target.setHours(h,m,0,0);
+  // If current time is past the review time and not reviewed yet
+  if(now>=target){
+    const notifKey=`review-nudge-${today()}`;
+    if(!sessionStorage.getItem(notifKey)){
+      sendNotif('🔔 Hora da revisão!','Pare 2 minutos e revise seus itens pendentes.','daily-review',true);
+      sessionStorage.setItem(notifKey,'1');
+    }
+  }
+}
+
+// ─── Streak ───
+function calcStreak(reviewDates){
+  if(!reviewDates||reviewDates.length===0)return 0;
+  const sorted=[...new Set(reviewDates)].sort().reverse();
+  // Check if today or yesterday is in the list (streak is active)
+  const t=today();
+  const y=new Date(Date.now()-864e5).toISOString().split('T')[0];
+  if(sorted[0]!==t&&sorted[0]!==y)return 0;
+  let streak=1;
+  for(let i=1;i<sorted.length;i++){
+    const prev=new Date(sorted[i-1]);
+    const curr=new Date(sorted[i]);
+    const diff=(prev-curr)/(864e5);
+    if(diff===1)streak++;
+    else break;
+  }
+  return streak;
+}
+
+// ─── Voice ───
+let recognition=null;
+let isListening=false;
+
+function initVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return false;
+  recognition=new SR();
+  recognition.lang='pt-BR';
+  recognition.continuous=false;
+  recognition.interimResults=true;
+  return true;
+}
+
+function toggleVoice(){
+  if(!recognition){
+    if(!initVoice()){showToast('Seu navegador não suporta reconhecimento de voz','warn');return}
+  }
+  if(isListening){
+    recognition.stop();
+    isListening=false;
+    render();
+    return;
+  }
+  const input=document.getElementById('capIn');
+  recognition.onresult=(e)=>{
+    let transcript='';
+    for(let i=0;i<e.results.length;i++){transcript+=e.results[i][0].transcript}
+    if(input)input.value=transcript;
+  };
+  recognition.onend=()=>{isListening=false;render()};
+  recognition.onerror=(e)=>{isListening=false;render();if(e.error!=='no-speech')showToast('Erro no microfone: '+e.error,'warn')};
+  recognition.start();
+  isListening=true;
+  if(navigator.vibrate)navigator.vibrate(50);
+  render();
+}
+
+// ─── State ───
+let S={
+  items:[],triagem:[],view:'focus',processing:false,
+  lastReview:null,reviewDates:[],
+  filterCat:'all',showDone:false,expandedId:null,
+  apiKey:'',reviewTime:'07:30',syncToken:'',syncUrl:'',
+  lastSync:null,syncing:false,
+  toast:null,toastType:'info',
+  reviewIdx:0,reviewEdits:{},
+  notifEnabled:false,
+};
+
+// ─── Toast ───
+function showToast(msg,type='info'){
+  S.toast=msg;S.toastType=type;render();
+  setTimeout(()=>{S.toast=null;render()},3500);
+}
+
+// ─── Render ───
+function render(){
+  const $=document.getElementById('app');
+  const ur=S.items.filter(i=>!i.reviewed&&!i.done).length;
+  const pend=S.items.filter(i=>!i.done).length;
+  const od=S.items.filter(i=>!i.done&&daysTo(i.due_date)<0).length;
+  const td=S.items.filter(i=>!i.done&&daysTo(i.due_date)===0).length;
+  const streak=calcStreak(S.reviewDates);
+  const reviewedToday=S.lastReview===today();
+  let h='';
+
+  // Toast
+  if(S.toast)h+=`<div class="toast ${S.toastType}">${esc(S.toast)}</div>`;
+
+  // Header
+  h+=`<div class="hdr"><div class="hdr-top"><div class="logo">ORG<b>.</b>AI</div>
+    <button class="hdr-btn" onclick="sv('settings')">⚙️</button></div></div>`;
+
+  // Stats
+  h+=`<div class="stats">
+    <div class="stat"><div class="sn">${pend}</div><div class="sl">Pendentes</div></div>
+    <div class="stat"><div class="sn ${od>0?'r':'d'}">${od}</div><div class="sl">Atrasados</div></div>
+    <div class="stat"><div class="sn ${td>0?'y':'d'}">${td}</div><div class="sl">Hoje</div></div>
+    <div class="stat"><div class="sn ${ur>0?'b':'d'}">${ur}</div><div class="sl">Inbox</div></div>
+  </div>`;
+
+  // Streak
+  if(streak>0||reviewedToday){
+    h+=`<div class="streak">🔥 <b>${streak}</b> dia${streak!==1?'s':''} de revisão consecutiva${reviewedToday?' · ✅ Hoje feito':''}</div>`;
+  }
+
+  // Nudge
+  if(!reviewedToday&&pend>0){
+    h+=`<div class="nudge"><div class="nudge-t">🔔 Revisão diária pendente${ur>0?` · ${ur} na inbox`:''}</div>
+      <button class="nudge-b" onclick="sv('review')">Revisar →</button></div>`;
+  }
+
+  // Views
+  if(S.view==='focus')h+=rFocus();
+  else if(S.view==='inbox')h+=rInbox();
+  else if(S.view==='review')h+=rReview();
+  else if(S.view==='all')h+=rAll();
+  else if(S.view==='settings')h+=rSettings();
+
+  // Bottom nav
+  h+=`<div class="bnav">
+    <button class="ni ${S.view==='focus'?'a':''}" onclick="sv('focus')"><span class="ni-i">🎯</span><span class="ni-l">Foco</span></button>
+    <button class="ni ${S.view==='inbox'?'a':''}" onclick="sv('inbox')" style="position:relative"><span class="ni-i">📥</span><span class="ni-l">Inbox</span>${ur>0?`<span class="ni-b">${ur}</span>`:''}</button>
+    <button class="ni ${S.view==='review'?'a':''}" onclick="sv('review')"><span class="ni-i">✅</span><span class="ni-l">Revisão</span></button>
+    <button class="ni ${S.view==='all'?'a':''}" onclick="sv('all')"><span class="ni-i">📋</span><span class="ni-l">Tudo</span></button>
+  </div>`;
+
+  $.innerHTML=h;
+}
+
+// ─── Focus View (Top 3) ───
+function rFocus(){
+  const top3=getSorted().filter(i=>!i.done).slice(0,3);
+  let h=`<div class="focus"><div class="focus-title">🎯 Foco do Dia</div>
+    <div class="focus-sub">Resolva esses ${Math.min(top3.length,3)} primeiro — o resto pode esperar</div>`;
+  if(top3.length===0){
+    h+=`<div class="focus-empty"><div style="font-size:48px;margin-bottom:12px">🎉</div>
+      <div style="font-size:16px;font-weight:700;color:var(--tx)">Tudo limpo!</div>
+      <div style="font-size:13px;color:var(--tx3);margin-top:6px">Nenhum item pendente. Bom trabalho.</div></div>`;
+  }else{
+    top3.forEach((item,idx)=>{
+      const cat=CATS[item.category]||CATS.outro;
+      const pri=PRIS[item.priority]||PRIS.media;
+      const d=daysTo(item.due_date);
+      const dateLabel=item.due_date?(d<0?`⚠️ ${Math.abs(d)}d atrás`:d===0?'📍 Hoje':d===1?'⏰ Amanhã':`${d}d · ${fmtD(item.due_date)}`):'Sem data';
+      const dateColor=d<0?'var(--rd)':d<=2?'var(--yw)':'var(--tx2)';
+      h+=`<div class="focus-item" style="border-left-color:${cat.color}">
+        <div class="focus-num">${idx+1}</div>
+        <span class="focus-cat" style="background:${cat.color}22;color:${cat.color};border:1px solid ${cat.color}44">${cat.i} ${cat.l}</span>
+        <span class="focus-cat" style="background:${pri.color}22;color:${pri.color};border:1px solid ${pri.color}44;margin-left:4px">${pri.l}</span>
+        <div class="focus-t">${esc(item.title)}</div>
+        <div class="focus-d" style="color:${dateColor}">${dateLabel}</div>
+        ${item.notes?`<div style="font-size:12px;color:var(--tx3);margin-top:4px">${esc(item.notes)}</div>`:''}
+        <button class="focus-done" onclick="event.stopPropagation();markDone('${item.id}')">✓ Concluído</button>
+      </div>`;
+    });
+  }
+  // Triagem alert
+  if(S.triagem.length>0){
+    h+=`<div style="margin-top:16px;padding:12px 14px;background:var(--sf);border-radius:12px;border:1px solid #7c3aed44;cursor:pointer" onclick="sv('inbox')">
+      <div style="font-size:13px;color:var(--pu);font-weight:600">📧 ${S.triagem.length} email(s) aguardando triagem</div>
+      <div style="font-size:11px;color:var(--tx3);margin-top:2px">Toque para revisar na Inbox</div></div>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+
+// ─── Inbox ───
+function rInbox(){
+  let h=`<div class="cap">
+    <div class="cap-h">⚡ Captura Rápida</div>
+    <div class="cap-s">Jogue qualquer coisa — a IA organiza pra você</div>
+    <div class="cap-row">
+      <textarea class="cap-in" id="capIn" placeholder='Ex: "Boleto Cremer vence dia 20" ou "Ligar pro Pablo"' rows="3"></textarea>
+      <button class="cap-mic ${isListening?'on':'off'}" onclick="toggleVoice()" title="Captura por voz">
+        ${isListening?'⏹️':'🎤'}
+      </button>
+    </div>
+    ${isListening?'<div class="cap-listening">🔴 Ouvindo... fale agora</div>':''}
+    <button class="cap-btn" id="capBtn" onclick="doCapture()" ${S.processing?'disabled':''}>
+      ${S.processing?'<span class="spinner"></span> Classificando...':'🧠 Classificar com IA'}
+    </button>
+  </div>`;
+
+  // Triagem (email items pending approval)
+  if(S.triagem.length>0){
+    h+=`<div class="slbl">📧 TRIAGEM DE EMAILS (${S.triagem.length})</div>`;
+    S.triagem.forEach(t=>{
+      h+=`<div class="tri-item">
+        <div class="tri-source">📧 via email · ${esc(t.source||'webhook')}</div>
+        <div class="tri-text">${esc(t.text.slice(0,200))}${t.text.length>200?'...':''}</div>
+        <div class="tri-acts">
+          <button class="tri-btn" style="background:var(--bl)" onclick="acceptTriagem('${t.id}')">✓ Capturar</button>
+          <button class="tri-btn" style="background:#334155" onclick="dismissTriagem('${t.id}')">✕ Descartar</button>
+        </div>
+      </div>`;
+    });
+  }
+
+  const recent=S.items.filter(i=>!i.done).slice(0,8);
+  if(recent.length>0){
+    h+=`<div class="slbl">Recentes</div>`;
+    recent.forEach(i=>{h+=rItem(i)});
+  }else if(S.triagem.length===0){
+    h+=`<div class="empty">Nenhum item. Use a captura rápida ou compartilhe de outro app!</div>`;
+  }
+  return h;
+}
+
+// ─── All ───
+function rAll(){
+  let h=`<div class="flt">`;
+  h+=`<button class="chip ${S.filterCat==='all'?'a':''}" onclick="sf('all')">Todos</button>`;
+  Object.entries(CATS).forEach(([k,v])=>{
+    const n=S.items.filter(i=>i.category===k&&!i.done).length;
+    const a=S.filterCat===k;
+    h+=`<button class="chip${a?' a':''}" style="${a?`background:${v.c}22;border-color:${v.c};color:${v.c}`:''}" onclick="sf('${k}')">${v.i} ${v.l}${n>0?` (${n})`:''}</button>`;
+  });
+  h+=`<button class="chip${S.showDone?' a':''}" style="${S.showDone?'background:#05966922;border-color:#059669;color:#34d399':''};margin-left:auto" onclick="tsd()">${S.showDone?'✓ Feitos':'Mostrar feitos'}</button></div>`;
+  const sorted=getSorted();
+  const filtered=sorted.filter(i=>{if(!S.showDone&&i.done)return false;if(S.filterCat!=='all'&&i.category!==S.filterCat)return false;return true});
+  if(filtered.length>0)filtered.forEach(i=>{h+=rItem(i)});
+  else h+=`<div class="empty">Nenhum item encontrado.</div>`;
+  return h;
+}
+
+// ─── Item ───
+function rItem(item){
+  const cat=CATS[item.category]||CATS.outro;
+  const pri=PRIS[item.priority]||PRIS.media;
+  const d=daysTo(item.due_date);const od=d<0&&!item.done;const sn=d>=0&&d<=2;
+  const exp=S.expandedId===item.id;
+  let dt='';
+  if(item.due_date){
+    const col=od?'var(--rd)':sn?'var(--yw)':'var(--tx2)';
+    const lb=od?`⚠️ ${Math.abs(d)}d atrás`:d===0?'📍 Hoje':d===1?'⏰ Amanhã':`${d}d`;
+    dt=`<div class="idt"><div class="idt-m" style="color:${col}">${lb}</div><div class="idt-s">${fmtD(item.due_date)}</div></div>`;
+  }
+  let ex='';
+  if(exp){
+    ex=`<div class="iexp">`;
+    if(item.notes)ex+=`<div class="iexp-n">${esc(item.notes)}</div>`;
+    if(item.reasoning)ex+=`<div class="iexp-r">🧠 ${esc(item.reasoning)}</div>`;
+    if(item.original_text)ex+=`<div style="font-size:11px;color:var(--tx4);margin-bottom:8px">Original: "${esc(item.original_text.slice(0,100))}"</div>`;
+    ex+=`<div class="iact"><button class="bdng" onclick="event.stopPropagation();delItem('${item.id}')">Excluir</button></div></div>`;
+  }
+  return`<div class="item ${item.done?'done':''} ${od?'overdue':''}" style="border-left-color:${cat.c}" onclick="te('${item.id}')">
+    <div class="itop"><div class="chk ${item.done?'on':''}" style="border-color:${cat.c};${item.done?`background:${cat.c}`:''}" onclick="event.stopPropagation();td('${item.id}')">${item.done?'✓':''}</div>
+    <div class="ibody"><div class="itt${item.done?' s':''}">${esc(item.title)}</div>
+    <div class="badges"><span class="bdg" style="background:${cat.c}22;color:${cat.c};border-color:${cat.c}44">${cat.i} ${cat.l}</span>
+    <span class="bdg" style="background:${pri.c}22;color:${pri.c};border-color:${pri.c}44">${pri.l}</span></div></div>${dt}</div>${ex}</div>`;
+}
+
+// ─── Review ───
+function rReview(){
+  const unr=S.items.filter(i=>!i.reviewed&&!i.done);
+  if(unr.length===0)return`<div class="rev-empty"><div style="font-size:48px;margin-bottom:16px">✅</div>
+    <div style="font-size:18px;font-weight:700">Tudo revisado!</div>
+    <div style="font-size:14px;color:var(--tx2);margin:8px 0 20px">Nenhum item pendente.</div>
+    <button class="nudge-b" onclick="completeRev()">Voltar</button></div>`;
+  const idx=Math.min(S.reviewIdx,unr.length-1);
+  const item=unr[idx];const cat=CATS[item.category]||CATS.outro;
+  const ed=S.reviewEdits[item.id]||{};
+  const ec=ed.category||item.category;const ep=ed.priority||item.priority;
+  const edd=ed.due_date!==undefined?ed.due_date:(item.due_date||'');
+
+  let cats='';Object.entries(CATS).forEach(([k,v])=>{const a=ec===k;
+    cats+=`<button class="chip" style="${a?`background:${v.c}33;border-color:${v.c};color:${v.c}`:''}" onclick="sre('${item.id}','category','${k}')">${v.i} ${v.l}</button>`});
+  let pris='';Object.entries(PRIS).forEach(([k,v])=>{const a=ep===k;
+    pris+=`<button class="chip" style="${a?`background:${v.c}33;border-color:${v.c};color:${v.c}`:''}" onclick="sre('${item.id}','priority','${k}')">${v.l}</button>`});
+
+  return`<div class="rev"><div class="rev-p"><div class="rev-pt">Revisão: ${idx+1} de ${unr.length}</div>
+    <div class="rev-bar"><div class="rev-bf" style="width:${((idx+1)/unr.length)*100}%"></div></div></div>
+    <div class="rev-c">
+      <div class="rev-l">TEXTO ORIGINAL</div><div class="rev-o">"${esc(item.original_text||item.title)}"</div>
+      <div class="rev-l">CLASSIFICAÇÃO DA IA</div><div class="rev-t">${esc(item.title)}</div>
+      ${item.notes?`<div style="font-size:13px;color:var(--tx2);margin-bottom:10px">${esc(item.notes)}</div>`:''}
+      ${item.reasoning?`<div style="font-size:12px;color:var(--tx3);font-style:italic;margin-bottom:14px">🧠 ${esc(item.reasoning)}</div>`:''}
+      <div class="rev-l">CATEGORIA</div><div class="rev-chips">${cats}</div>
+      <div class="rev-l">PRIORIDADE</div><div class="rev-chips">${pris}</div>
+      <div class="rev-l">DATA</div><input type="date" class="rev-di" value="${edd}" onchange="sre('${item.id}','due_date',this.value)">
+      <div class="rev-acts">
+        <button class="rev-ab" style="background:var(--bl);flex:2" onclick="approveRev('${item.id}')">✓ Confirmar</button>
+        <button class="rev-ab" style="background:var(--gn);flex:1" onclick="doneRev('${item.id}')">Feito</button>
+        <button class="rev-ab" style="background:#334155;flex:1" onclick="skipRev()">Pular</button>
+      </div>
+    </div></div>`;
+}
+
+// ─── Settings ───
+function rSettings(){
+  const notifStatus=!('Notification' in window)?'Não suportado':Notification.permission==='granted'?'✅ Ativadas':Notification.permission==='denied'?'❌ Bloqueadas':'Não solicitadas';
+  return`<div class="stg">
+    <div class="stg-g"><div class="stg-t">🔑 API Key (Anthropic)</div>
+      <div class="stg-f"><label class="stg-lb">Necessária para classificação com IA</label>
+        <input type="password" class="stg-in" id="akIn" value="${esc(S.apiKey)}" placeholder="sk-ant-...">
+        <div class="stg-nt">Salva apenas no seu dispositivo. Sem ela, usa regras simples.</div></div>
+      <button class="stg-sv" onclick="saveKey()">Salvar API Key</button></div>
+
+    <div class="stg-g"><div class="stg-t">🔔 Notificações</div>
+      <div class="stg-f"><div class="stg-lb">Status: ${notifStatus}</div>
+        ${Notification.permission!=='granted'?`<button class="stg-sv" style="background:var(--or)" onclick="enableNotifs()">Ativar Notificações</button>`:''}</div>
+      <div class="stg-f"><label class="stg-lb">Horário da revisão diária</label>
+        <input type="time" class="stg-in" id="rtIn" value="${S.reviewTime||'07:30'}">
+        <div class="stg-nt">Você será notificado neste horário se não tiver feito a revisão.</div></div>
+      <button class="stg-sv" onclick="saveReviewTime()">Salvar Horário</button></div>
+
+    <div class="stg-g"><div class="stg-t">🔗 Sync com Claude</div>
+      <div class="stg-f"><div class="stg-nt" style="font-size:13px;color:var(--tx2);line-height:1.6">
+        Conecta o app ao Claude. Quando você mandar <strong>"organizar tarefas"</strong> no Claude, ele puxa os itens daqui, classifica com IA (no seu plano Max), e devolve.
+      </div></div>
+      <div class="stg-f"><label class="stg-lb">Token de sync (crie uma senha qualquer)</label>
+        <input type="text" class="stg-in" id="syncTokenIn" value="${esc(S.syncToken)}" placeholder="ex: minha-senha-123">
+        <div class="stg-nt">Use algo simples que você lembre. Você vai me informar esse token uma vez no Claude.</div></div>
+      <button class="stg-sv" onclick="saveSyncSettings()">Salvar Token</button>
+      ${S.syncToken?`<button class="stg-sv" style="background:var(--gn);margin-top:8px" onclick="manualSync()">🔄 Sincronizar Agora</button>
+        <div class="stg-nt" style="margin-top:6px">${S.lastSync?'Último sync: '+new Date(S.lastSync).toLocaleString('pt-BR'):'Nunca sincronizado'}</div>`:''}
+    </div>
+
+    <div class="stg-g"><div class="stg-t">📧 Webhook para Email</div>
+      <div class="stg-f"><div class="stg-nt" style="font-size:13px;color:var(--tx2);line-height:1.6">
+        Para capturar emails automaticamente, configure no Zapier/Make:<br><br>
+        <strong>URL do webhook:</strong><br>
+        <code style="background:#0f172a;padding:6px 10px;border-radius:6px;display:block;margin:6px 0;font-size:12px;word-break:break-all;color:var(--yw)">
+        POST ${window.location.origin}/api/capture</code>
+        <strong>Body (JSON):</strong><br>
+        <code style="background:#0f172a;padding:6px 10px;border-radius:6px;display:block;margin:6px 0;font-size:11px;color:var(--tx2)">
+        {"text": "assunto + corpo do email", "source": "email"}</code><br>
+        Os emails chegam na <strong>Triagem</strong> — você aprova ou descarta antes de virar item.
+      </div></div></div>
+
+    <div class="stg-g"><div class="stg-t">📱 Instalação</div>
+      <div class="stg-f"><div class="stg-nt" style="font-size:13px;color:var(--tx2);line-height:1.6">
+        <strong>Android:</strong> Menu (⋮) → "Adicionar à tela inicial"<br>
+        <strong>iPhone:</strong> Compartilhar (⬆) → "Adicionar à Tela de Início"<br><br>
+        Depois, o ORG.AI aparece no menu <strong>Compartilhar</strong> de qualquer app.
+      </div></div></div>
+
+    <div class="stg-g"><div class="stg-t">📊 Dados</div>
+      <div class="stg-f"><div class="stg-nt" style="font-size:13px;color:var(--tx2)">
+        ${S.items.length} itens · ${S.items.filter(i=>i.done).length} concluídos · 🔥 ${calcStreak(S.reviewDates)} dias de streak
+      </div></div>
+      <button class="stg-dg" onclick="if(confirm('Tem certeza? Apaga TUDO.')){clearAll()}">Limpar todos os dados</button></div>
+  </div>`;
+}
+
+// ─── Actions ───
+function sv(v){S.view=v;S.expandedId=null;if(v==='review')S.reviewIdx=0;render()}
+function sf(c){S.filterCat=c;render()}
+function tsd(){S.showDone=!S.showDone;render()}
+function te(id){S.expandedId=S.expandedId===id?null:id;render()}
+
+async function td(id){const i=S.items.find(x=>x.id===id);if(i){i.done=!i.done;await dbPut('items',i);render()}}
+async function markDone(id){const i=S.items.find(x=>x.id===id);if(i){i.done=true;i.reviewed=true;await dbPut('items',i);if(navigator.vibrate)navigator.vibrate([50,30,50]);render()}}
+async function delItem(id){S.items=S.items.filter(i=>i.id!==id);S.expandedId=null;await dbDel('items',id);render()}
+
+async function doCapture(){
+  const el=document.getElementById('capIn');const text=el?.value?.trim();
+  if(!text||S.processing)return;
+  S.processing=true;render();
+  const r=await classifyAI(text,S.apiKey);
+  const ni={id:gid(),title:r?.title||text.slice(0,60),category:r?.category||'outro',priority:r?.priority||'media',
+    due_date:r?.due_date||null,type:r?.type||'tarefa',notes:r?.notes||'',reasoning:r?.reasoning||'',
+    original_text:text,done:false,reviewed:false,created_at:new Date().toISOString()};
+  S.items.unshift(ni);S.processing=false;await dbPut('items',ni);
+  if(navigator.vibrate)navigator.vibrate(50);
+  showToast(`✅ "${ni.title}" capturado!`,'success');
+  // Auto-sync to server
+  if(S.syncToken)syncToServer();
+}
+
+function sre(id,f,v){if(!S.reviewEdits[id])S.reviewEdits[id]={};S.reviewEdits[id][f]=v;render()}
+
+async function approveRev(id){
+  const i=S.items.find(x=>x.id===id);const ed=S.reviewEdits[id]||{};
+  if(i){i.reviewed=true;if(ed.category)i.category=ed.category;if(ed.priority)i.priority=ed.priority;
+    if(ed.due_date!==undefined)i.due_date=ed.due_date||null;await dbPut('items',i)}
+  advRev();
+}
+async function doneRev(id){
+  const i=S.items.find(x=>x.id===id);if(i){i.reviewed=true;i.done=true;await dbPut('items',i)}advRev();
+}
+function skipRev(){const unr=S.items.filter(i=>!i.reviewed&&!i.done);if(S.reviewIdx<unr.length-1)S.reviewIdx++;render()}
+function advRev(){const unr=S.items.filter(i=>!i.reviewed&&!i.done);if(unr.length===0)completeRev();else{S.reviewIdx=Math.min(S.reviewIdx,unr.length-1);render()}}
+async function completeRev(){
+  S.lastReview=today();await sm('lastReview',today());
+  if(!S.reviewDates.includes(today())){S.reviewDates.push(today());await sm('reviewDates',JSON.stringify(S.reviewDates))}
+  S.view='focus';render();
+  showToast('✅ Revisão concluída! Bom trabalho.','success');
+}
+
+// Triagem
+async function acceptTriagem(id){
+  const t=S.triagem.find(x=>x.id===id);if(!t)return;
+  S.triagem=S.triagem.filter(x=>x.id!==id);await dbDel('triagem',id);
+  // Classify and add
+  S.processing=true;render();
+  const r=await classifyAI(t.text,S.apiKey);
+  const ni={id:gid(),title:r?.title||t.text.slice(0,60),category:r?.category||'outro',priority:r?.priority||'media',
+    due_date:r?.due_date||null,type:r?.type||'tarefa',notes:r?.notes||'',reasoning:r?.reasoning||'',
+    original_text:t.text,done:false,reviewed:false,created_at:new Date().toISOString(),source:'email'};
+  S.items.unshift(ni);S.processing=false;await dbPut('items',ni);
+  showToast(`📧 Email capturado: "${ni.title}"`,'success');
+}
+async function dismissTriagem(id){
+  S.triagem=S.triagem.filter(x=>x.id!==id);await dbDel('triagem',id);render();
+}
+
+// Settings
+async function saveKey(){
+  const el=document.getElementById('akIn');S.apiKey=el?.value?.trim()||'';
+  await sm('apiKey',S.apiKey);showToast('🔑 API Key salva!','success');
+}
+async function enableNotifs(){
+  const ok=await requestNotifPermission();
+  if(ok){S.notifEnabled=true;showToast('🔔 Notificações ativadas!','success')}
+  else showToast('Notificações bloqueadas. Ative nas configurações do navegador.','warn');
+  render();
+}
+async function saveReviewTime(){
+  const el=document.getElementById('rtIn');S.reviewTime=el?.value||'07:30';
+  await sm('reviewTime',S.reviewTime);showToast(`⏰ Revisão diária: ${S.reviewTime}`,'success');
+}
+
+// ─── Sync with server (for Claude integration) ───
+async function saveSyncSettings(){
+  const tEl=document.getElementById('syncTokenIn');
+  const token=tEl?.value?.trim()||'';
+  S.syncToken=token;
+  S.syncUrl=window.location.origin;
+  await sm('syncToken',token);await sm('syncUrl',S.syncUrl);
+  if(!token){showToast('Token removido','info');render();return}
+  // Setup token on server
+  try{
+    const r=await fetch(S.syncUrl+'/api/items',{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({action:'setup',token})});
+    const d=await r.json();
+    if(d.success||d.error==='Invalid token'){
+      showToast('🔗 Sync configurado! Token salvo.','success');
+      await syncToServer();
+    }else{
+      showToast('Erro: '+JSON.stringify(d),'warn');
+    }
+  }catch(e){showToast('Erro de conexão: '+e.message,'warn')}
+  render();
+}
+
+async function syncToServer(){
+  if(!S.syncToken||S.syncing)return;
+  S.syncing=true;
+  try{
+    const items=S.items.map(i=>({...i,updated_at:i.updated_at||i.created_at}));
+    const r=await fetch(S.syncUrl+'/api/items',{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.syncToken},
+      body:JSON.stringify({action:'sync',items})});
+    const d=await r.json();
+    if(d.success){S.lastSync=new Date().toISOString();await sm('lastSync',S.lastSync)}
+  }catch(e){console.warn('Sync error:',e)}
+  S.syncing=false;
+}
+
+async function pullFromServer(){
+  if(!S.syncToken)return;
+  try{
+    const r=await fetch(S.syncUrl+'/api/items?token='+encodeURIComponent(S.syncToken));
+    const d=await r.json();
+    if(d.items){
+      let updated=0;
+      for(const serverItem of d.items){
+        if(serverItem.ai_classified){
+          const local=S.items.find(i=>i.id===serverItem.id);
+          if(local&&!local.ai_classified){
+            Object.assign(local,serverItem);
+            await dbPut('items',local);
+            updated++;
+          }
+        }
+      }
+      if(updated>0){
+        showToast(`🧠 ${updated} item(ns) classificados pelo Claude!`,'success');
+        S.items=getSorted();render();
+      }
+    }
+  }catch(e){console.warn('Pull error:',e)}
+}
+
+async function manualSync(){
+  if(!S.syncToken){showToast('Configure o token de sync primeiro','warn');return}
+  showToast('🔄 Sincronizando...','info');
+  await syncToServer();
+  await pullFromServer();
+  showToast('✅ Sync completo!','success');
+}
+
+async function clearAll(){await dbClr('items');await dbClr('triagem');S.items=[];S.triagem=[];render()}
+
+function getSorted(){return[...S.items].sort((a,b)=>{
+  if(a.done!==b.done)return a.done?1:-1;
+  const pa=PRIS[a.priority]?.w||0,pb=PRIS[b.priority]?.w||0;
+  if(pa!==pb)return pb-pa;return daysTo(a.due_date)-daysTo(b.due_date)})}
+
+// ─── Share Target ───
+function handleShare(){
+  const p=new URLSearchParams(location.search);
+  if(p.has('share')||p.has('text')||p.has('title')||p.has('url')){
+    const parts=[p.get('title'),p.get('text'),p.get('url')].filter(Boolean);
+    const txt=parts.join(' — ');
+    if(txt){
+      S.view='inbox';showToast('📥 Texto capturado! Classificando...','info');
+      setTimeout(async()=>{
+        const r=await classifyAI(txt,S.apiKey);
+        const ni={id:gid(),title:r?.title||txt.slice(0,60),category:r?.category||'outro',priority:r?.priority||'media',
+          due_date:r?.due_date||null,type:r?.type||'tarefa',notes:r?.notes||'',reasoning:r?.reasoning||'',
+          original_text:txt,done:false,reviewed:false,created_at:new Date().toISOString(),source:'share'};
+        S.items.unshift(ni);await dbPut('items',ni);
+        if(navigator.vibrate)navigator.vibrate([50,50,50]);
+        showToast(`✅ "${ni.title}" capturado!`,'success');
+        if(S.syncToken)syncToServer();
+        history.replaceState({},'','/');
+      },100);
+    }
+  }
+}
+
+// ─── Notification scheduler ───
+function startNotifChecker(){
+  // Check every 5 minutes
+  setInterval(()=>{
+    if(Notification.permission!=='granted')return;
+    checkDueNotifications(S.items);
+    checkDailyReviewNotif(S.lastReview,S.reviewTime);
+  },5*60*1000);
+  // Also check immediately
+  setTimeout(()=>{
+    if(Notification.permission==='granted'){
+      checkDueNotifications(S.items);
+      checkDailyReviewNotif(S.lastReview,S.reviewTime);
+    }
+  },3000);
+}
+
+// ─── Init ───
+async function init(){
+  if('serviceWorker' in navigator){try{await navigator.serviceWorker.register('/sw.js')}catch(e){console.warn('SW:',e)}}
+  S.items=await dbAll('items');S.triagem=await dbAll('triagem');
+  S.lastReview=await gm('lastReview');S.apiKey=await gm('apiKey')||'';
+  S.reviewTime=await gm('reviewTime')||'07:30';
+  S.syncToken=await gm('syncToken')||'';S.syncUrl=await gm('syncUrl')||window.location.origin;
+  S.lastSync=await gm('lastSync')||null;
+  const rd=await gm('reviewDates');S.reviewDates=rd?JSON.parse(rd):[];
+  S.items=getSorted();
+  S.notifEnabled=Notification.permission==='granted';
+  render();handleShare();startNotifChecker();initVoice();
+  // Auto-pull classified items from server
+  if(S.syncToken){setTimeout(()=>pullFromServer(),2000)}
+}
+
+// Globals
+window.sv=sv;window.sf=sf;window.tsd=tsd;window.te=te;window.td=td;
+window.markDone=markDone;window.delItem=delItem;window.doCapture=doCapture;
+window.sre=sre;window.approveRev=approveRev;window.doneRev=doneRev;
+window.skipRev=skipRev;window.completeRev=completeRev;
+window.acceptTriagem=acceptTriagem;window.dismissTriagem=dismissTriagem;
+window.saveKey=saveKey;window.enableNotifs=enableNotifs;
+window.saveReviewTime=saveReviewTime;window.clearAll=clearAll;
+window.toggleVoice=toggleVoice;
+window.saveSyncSettings=saveSyncSettings;window.manualSync=manualSync;
+
+init();
+</script>
+</body>
+</html>
